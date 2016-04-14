@@ -107,8 +107,8 @@ and may be implemented with the goal of eventual inclusion into Foreman.
   * RFCs rarely go through this process unchanged, especially as alternatives
     and drawbacks are shown. You can make edits, big and small, to the RFC to
     clarify or change the design, but make changes as new commits to the PR and
-    leave a comment detailing the changes. Specifically, do not squash or
-    rebase commits after they are visible on the PR.
+    leave a comment detailing the changes. Specifically, **do not squash or
+    rebase commits after they are visible on the PR**.
 * Once the RFC has been clarified and defended and the conversation is settled,
   the RFC will be merged by one of the long-standing developers, or rejected by
   closing the pull request. Optionally, a one-week "final comments" period may
