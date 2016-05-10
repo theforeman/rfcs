@@ -13,7 +13,8 @@ and controlled path for new features to enter the project.
 
 ##Active RFC List
 [Active RFC List]: #active-rfc-list
-[0001-split-nic-model-from-host-model](text/0001-split-nic-model-from-host-model.md)
+[UEFI support for PXE booting](https://github.com/theforeman/rfcs/pull/2)
+[Update asset management](https://github.com/theforeman/rfcs/pull/3)
 
 ## Table of Contents
 [Table of Contents]: #table-of-contents
