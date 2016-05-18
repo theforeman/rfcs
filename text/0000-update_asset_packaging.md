@@ -25,7 +25,10 @@ Some of the reasons that we may want to change the way we currently handle this:
 # Detailed design
 [design]: #detailed-design
 
-This will depend on the alternative that will be chosen and updated later.
+NPM will be used to manage as many of the assets that are currently being vendored or bundled as possible.
+If we run into issues with packages that are only available for Bower in the future, we will consider adding Bower as well. The main advantage of using only NPM is that we have a central location for all js dependencies and only one tool added rather then two, which reduces the complexity. NPM also allows namespacing JS modules using CommonJS to prevent possible collisions between various modules.
+The node modules will be integrated into the asset pipeline using one of the methods detailed under the Alternatives heading below.
+As we will currently continue using the Rails assets pipeline, any plugin will be able to use whatever method they choose to handle any assets as long as the result is added to the pipeline (as is done currently).
 
 # Drawbacks
 [drawbacks]: #drawbacks
@@ -38,66 +41,69 @@ Some reasons to stay with the current solution:
 # Alternatives
 [alternatives]: #alternatives
 
-__Option 1: Stay with current solution__
+__Option 1: Use Grunt task runner__
 
-See above for reasons for and against.
+_Pros:_
+* Existing knowledge base and tasks from Katello/Bastion.
 
-__Option 2: Webpack + npm__
+_Cons:_
+* Each task needs manual set up and configuration.
+* Creates multiple intermediate files while running.
+
+__Option 2: Use Gulp task runner__
+
+_Pros:_
+* Runs faster then Grunt and with less configuration.
+* Tasks can be built as streams of smaller units.
+
+_Cons:_
+* Each task needs manual set up and configuration.
+* Little relevant knowledge within the current core team.
+
+__Option 3: Webpack__
 
 [POC PR](https://github.com/theforeman/foreman/pull/3433)
 
 _Pros:_
 * Live reload development server.
 * Ability to package the code in separate chunks that are only loaded when needed.
-* Multiple loaders allow for server-side tasks such as transpiling, linting, minifing etc. to be run without requiring an additional task runner.
+* Multiple loaders allow multiple tasks be run without requiring an additional task runner and with minimal configuration.
 * Can possibly replace rails asset pipeline in the future if desired.
-* npm uses CommonJS modules which is allows namespacing JS code, which means you just won't accidentally mess with your dependencies.
 
 _Cons:_
-* Complex configuration compared to other alternatives.
-* Lack of examples in other projects
+* More complex configuration compared to webpack.
+* Less examples in other projects.
+* Possible that some tasks may still require an additional runner.
 
-__Option 3: Browserify + npm__
+__Option 4: Browserify__
 
 [POC PR](https://github.com/theforeman/foreman/pull/3326)
 
 _Pros:_
 * Simple installation and configuration.
 * Easy to tie into rails asset pipeline.
-* Easy to add es2015, minification, etc.
-* npm uses CommonJS modules which is allows namespacing JS code, which means you just won't accidentally mess with your dependencies.
+* Possible to handle certain tasks with transforms.
 
 _Cons:_
-* Only handles JS assets.
+* Only handles JS assets in its core (some transforms may be able to help).
+* Possible that some tasks may still require an additional runner.
+* Integration with Bower seems more complex.
 
-__Option 4: Bower__
-
-[POC is part of PR](https://github.com/theforeman/foreman/pull/2882)
+__Option 5: Use Rake__
 
 _Pros:_
-* Bower seems to have a larger ecosystem for front-end assets then npm
-* Already in use in Katello, amount of effort required is halved.
-* Live reload development server could be done with some more work to grunt/gulp or any other build system
-* Bower uses flat dependency tree to reduce dependency duplicities that clients would have to download if plain npm + browserify was used.
+* Write tasks in ruby rather then js - accessible to all team members.
+* Integration with plugins will possibly be easier if needed in the future.
 
 _Cons:_
-* Adds two more package managers instead of one - requires npm to install bower. This means we will have 3 different places that contain dependencies.
-* Some packages now are packaged only in npm
-* Does not provide solution for any server-side JS (testing, transpiling, etc.). Any such dependencies will need to be handled either by npm or bundler.
-
-__Option 5: npm alone__
-
-No POC available.
-
-_Pros:_
-* Only one new tool to add to the project.
-* npm uses CommonJS modules which is allows namespacing JS code, which means you just won't accidentally mess with your dependencies.
-
-_Cons:_
-* Requires means of adding the npm modules to the assets pipeline, such as a task runner or rake task.
+* Each task needs manual set up and configuration.
+* Using a non-native solution for js that may lead to some of the issues we currently face with bundler.
+* We would need to create this solution from scratch with no examples rather then use an existing one.
 
 # Unresolved questions
 [unresolved]: #unresolved-questions
 
 Issues that are common to any alternative chosen:
 * How to package rpms w/o internet connection, as Koji does not allow internet connection?
+** This could possibly be resolved by committing the compiled assets into source control prior to package builds, as packages only provide compiled assets and therefor don't require the entire development environment.
+
