@@ -11,9 +11,12 @@ developers.
 The "RFC" (request for comments) process is intended to provide a consistent
 and controlled path for new features to enter the project.
 
+##Published RFC List
+[Published RFC List]: #published-rfc-list
+* [UEFI support for PXE booting](text/0000-PXE-Booting-UEFI.md)
+
 ##Active RFC List
 [Active RFC List]: #active-rfc-list
-* [UEFI support for PXE booting](https://github.com/theforeman/rfcs/pull/2)
 * [Update asset management](https://github.com/theforeman/rfcs/pull/3)
 
 ## Table of Contents
