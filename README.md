@@ -13,7 +13,7 @@ and controlled path for new features to enter the project.
 
 ##Published RFC List
 [Published RFC List]: #published-rfc-list
-* [UEFI support for PXE booting](text/0000-PXE-Booting-UEFI.md)
+* [UEFI support for PXE booting](text/0001-PXE-Booting-UEFI.md)
 
 ##Active RFC List
 [Active RFC List]: #active-rfc-list

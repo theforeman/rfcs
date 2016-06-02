@@ -1,6 +1,6 @@
 - Feature Name: UEFI support for PXE booting
 - Start Date: 2016-05-04
-- RFC PR: (leave this empty)
+- RFC PR: [#2](https://github.com/theforeman/rfcs/pull/2)
 - Issue: [Redmine #431](http://projects.theforeman.org/issues/431)
 
 # Summary
