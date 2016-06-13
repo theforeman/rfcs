@@ -53,5 +53,9 @@ History of the discussion and pros and cons of each option can be read in the pr
 [unresolved]: #unresolved-questions
 
 * How to package rpms without internet connection, as Koji does not allow internet connection?
-** This could possibly be resolved by committing the compiled assets into source control prior to package builds, as packages only provide compiled assets and therefor don't require the entire development environment.
-
+  * The compiled assets could be committed into source control. This has a downside of committing a large amount of generated code into git, and may lead to issues with forgetting to recompile before commit.
+  * The `node_modules` directory could be added to source control. This again leads to a large amount of files that aren't required polluting our repository and issues with keeping the directory up to date.
+  * Each node module could be built as a separate package. This is unfeasible, since there are hundreds of modules required for the generation of the minified files. In addition, we would not want to package every single one ourselves, given that one of the goals of this change is to reduce packaging workload.
+  * The `node_modules` directory could be added to the source tarball before being sent to the builder, with the compiling and minification being run on the builder.
+  * The js assets could be compiled and minified before the build and have only the resulting files be added into the tarball passed into the builder.
+  * Some concern has been raised that any option other then packaging every single library may go against the Fedora Packaging Guidelines.
