@@ -26,8 +26,20 @@ Some of the reasons that we want to change the way we currently handle this:
 
 NPM will be used to manage as many of the assets that are currently being vendored or bundled as possible.
 If we run into issues with packages that are only available for Bower in the future, we will consider adding Bower as well. The main advantage of using only NPM is that we have a central location for all js dependencies and only one tool added rather then two, which reduces the complexity. NPM also allows namespacing JS modules using CommonJS to prevent possible collisions between various modules.
+
 The node modules will be integrated into foreman using Webpack. Webpack has a powerful system of loaders that allow handling various tasks. Webpack also comes with a small webserver that allows live-reload of all assets managed by it, hopefully leading to increased developer happiness. In addition, webpack has various other strengths that make it seem like the current leading option - ability to handle css assets and all js module flavors, smart division of code into bundles and more.
+
 As we will currently continue using the Rails assets pipeline, any plugin will be able to use whatever method they choose to handle any assets as long as the result is added to the pipeline (as is done currently).
+
+Packaging, especially for RPMs, poses a challenge, as Koji builders do not allow internet connection. Building the js assets for production requires running `npm install` to download the needed libraries, followed by `rake webpack:compile` which compiles only the needed portions of the js libraries along with our code into bundles that are minified. Several approaches were considered to handle this:
+
+* Packaging each node module as a separate package. This is unfeasible, since there are hundreds of modules required for the generation of the minified files. In addition, we would not want to package every single one ourselves, given that one of the goals of this change is to reduce packaging workload. However, some concern has been raised that this may be the only approach that fully conforms with the Fedora Packaging Guidelines.
+* Committing either the `node_modules` directory or the compiled assets could be committed into source control. This has a downside of committing a large amount of generated code into git, and may lead to issues with forgetting to recompile before commit.
+* Compiling and minifying the js assets before the build and add the resulting files into the tarball passed into the builder.
+* Adding the `node_modules` directory to the source tarball before being sent to the builder, with the compiling and minification being run on the builder.
+
+We propose using the last option, as it provides all the needed sources for the builder, in a similar way to how it is currently done for assets included in either gems or under `vendor/` that are needed for the `rake assets:precompile` task to work correctly.
+
 After a certain period of attempting this solution, we will review the choice and decide if we wish to continue in this direction or change to a different one.
 
 # Drawbacks
@@ -51,11 +63,3 @@ History of the discussion and pros and cons of each option can be read in the pr
 
 # Unresolved questions
 [unresolved]: #unresolved-questions
-
-* How to package rpms without internet connection, as Koji does not allow internet connection?
-  * The compiled assets could be committed into source control. This has a downside of committing a large amount of generated code into git, and may lead to issues with forgetting to recompile before commit.
-  * The `node_modules` directory could be added to source control. This again leads to a large amount of files that aren't required polluting our repository and issues with keeping the directory up to date.
-  * Each node module could be built as a separate package. This is unfeasible, since there are hundreds of modules required for the generation of the minified files. In addition, we would not want to package every single one ourselves, given that one of the goals of this change is to reduce packaging workload.
-  * The `node_modules` directory could be added to the source tarball before being sent to the builder, with the compiling and minification being run on the builder.
-  * The js assets could be compiled and minified before the build and have only the resulting files be added into the tarball passed into the builder.
-  * Some concern has been raised that any option other then packaging every single library may go against the Fedora Packaging Guidelines.
