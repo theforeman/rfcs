@@ -1,7 +1,7 @@
 - Feature Name: update_asset_packaging
 - Start Date: 2016-05-10
-- RFC PR:
-- Issue:
+- RFC PR: https://github.com/theforeman/rfcs/pull/3
+- Issue: 
 
 # Summary
 [summary]: #summary
@@ -38,7 +38,8 @@ Packaging, especially for RPMs, poses a challenge, as Koji builders do not allow
 * Compiling and minifying the js assets before the build and add the resulting files into the tarball passed into the builder.
 * Adding the `node_modules` directory to the source tarball before being sent to the builder, with the compiling and minification being run on the builder.
 
-We propose using the last option, as it provides all the needed sources for the builder, in a similar way to how it is currently done for assets included in either gems or under `vendor/` that are needed for the `rake assets:precompile` task to work correctly.
+In the end, the approach taken was to package every top-level npm dependancy as a bundle with all its requirements. This reduces the number of npm packages that we need to repackage as rpms from hundredrs of individual modules to only a few dozen, which are all listed in package.json. The process of generating the rpm specs for the node modules is mostly automated, using https://github.com/dLobatog/npm2rpm. 
+Debian packaging is not run in a disconnected environment, so packaging for Debian will simply run `npm install` during the build process to get the node modules needed for the build.
 
 After a certain period of attempting this solution, we will review the choice and decide if we wish to continue in this direction or change to a different one.
 
