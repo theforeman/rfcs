@@ -6,7 +6,7 @@
 # Summary
 [summary]: #summary
 
-The goal of this feature is to implement PXE booting of UEFI systems. In the default configuration on at least RHEL6, RHEL7 and Debian stable platforms, both BIOS and UEFI systems should be able to PXE boot including Discovery Image. Foreman bootdisk UEFI support is out of scope of this task.
+The goal of this feature is to implement PXE booting of UEFI systems. In the default configuration on at least RHEL6, RHEL7 and Debian stable platforms, both BIOS and UEFI systems should be able to PXE boot including Discovery Image. Foreman Bootdisk UEFI support is out of scope of this task.
 
 # Owners
 
@@ -20,7 +20,7 @@ Currently, Foreman supports booting of x86 BIOS systems via PXELinux and several
 # Detailed design
 [design]: #detailed-design
 
-Initial testing was done to get UEFI working on PXELinux and it looks like stable version of Syslinux (= PXELinux), which is currently 6.02, does not appear to support PXE booting correctly (at least not with TianoCore UEFI ROM in QEMU/KVM). The only version which was found working was 6.03-pre20.
+Initial testing was done to get UEFI working on PXELinux and it looks like stable version of Syslinux (= PXELinux), which is currently 6.02, does not appear to support PXE booting correctly (at least not with TianoCore UEFI ROM in QEMU/KVM). The only version which was found working was 6.03-pre20, but there is no stable release yet with UEFI support.
 
 Additionally, there is no PXELinux version with UEFI support in RHEL6 and RHEL7 and both systems ship with Grub (versions 1 and 2 respectively). Grub is more mature when it comes to UEFI support and since it can boot via PXE and Foreman already supports Grub1, it is more feasible to get UEFI working via officially supported Grub. To have complete support matrix, PXELinux will be part of this implementation, but hardware support (and thus testing) will be limited.
 
@@ -41,14 +41,14 @@ SYSLINUX | PXELinux | BIOS | pxelinux.0 | pxelinux.cfg/01-aa-bb-cc-dd-ee-ff | px
 SYSLINUX | PXELinux | UEFI | bootia32.efi, bootx64.efi | pxelinux.cfg/01-aa-bb-cc-dd-ee-ff | pxelinux.cfg/default | Configuration compatible
 PXEGRUB | PXEGrub | BIOS | pxegrub | grub/menu.lst.01aabbccddeeff | grub/menu.lst | PXELinux will be used instead usually, but default filename will be set for generic OS.
 PXEGRUB | PXEGrub | UEFI |  grub/bootia32.efi, grub/bootx64.efi | grub/01-AA-BB-CC-DD-EE-FF | grub/efidefault | New
-PXEGRUB2 |  PXEGrub | BIOS | pxegrub2 | grub2/grub.cfg-aa-bb-cc-dd-ee-ff | grub2/grub.cfg | PXELinux will be used instead usually, but default filename will be set for generic OS.
-PXEGRUB2 |  PXEGrub | UEFI |  grub2/grubx32.efi, grub2/grubx64.efi |  grub2/grub.cfg-aa-bb-cc-dd-ee-ff |  grub2/grub.cfg |  New
+PXEGRUB2 |  PXEGrub | BIOS | pxegrub2 | grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff | grub2/grub.cfg | PXELinux will be used instead usually, but default filename will be set for generic OS.
+PXEGRUB2 |  PXEGrub | UEFI |  grub2/grubx32.efi, grub2/grubx64.efi | grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff |  grub2/grub.cfg |  New
 POAP | POAP | - | poap.cfg/aabbccddeeff | poap.cfg/AABBCCDDEEFF | - | No changes
 ZTP | ZTP | - | poap.cfg/aabbccddeeff | poap.cfg/AABBCCDDEEFF | - | No changes
 
-For UEFI systems, 32bit or 64bit UEFI loader will be configured on DHCP according host's architecture association. Most Linux distributions have limited or zero support of 32bit UEFI (loaders are simply not shipped in their repositories), but to give the possibility of booting native 32bit UEFI loaders filenames "bootia32.efi" and "grubx32.efi" will be handed over by DHCP in order to support that path.
+For UEFI systems, 32bit or 64bit UEFI loader will be configured on DHCP according host's architecture association. Most Linux distributions have limited or zero support of 32bit UEFI (loaders are simply not shipped in their repositories, UEFI specifications also assume systems are 64bit), but to give the possibility of booting native 32bit UEFI loaders filenames "bootia32.efi" and "grubx32.efi" will be handed over by DHCP in order to support that path.
 
-In secure boot environments, loaders must be either signed or an alternative shim loader can be used. Users will be able to select third flag called "Secure Boot UEFI" which will cause setting DHCP filename to either "shim.efi", "grub/shim.efi" or "grub2/shim.efi" depending on variant which will then pass the check and chain-load unsigned firmware named "bootx64.efi" or "grubx64.efi"from the same directory.
+In secure boot environments, loaders must be either signed or an alternative shim loader can be used. Users will be able to select "Secure Boot UEFI" options which will cause setting DHCP filename to either "grub/shim.efi" or "grub2/shim.efi" depending on variant which will then pass the check and chain-load unsigned firmware named "bootx64.efi" or "grubx64.efi" from the same directory.
 
 PXEGrub (version 1) configuration path is changing from boot/grub/ to grub/ for consistency, a change in Foreman core will be needed but no migration or manual change after upgrade is needed - existing hosts in boot mode will continue booting from the old dir, new ones will use the new path. TFTP file deletion does not trigger error, thus the only drawback is there might be configuration files left after some time. We will put this into upgrade instructions.
 
@@ -60,21 +60,41 @@ Both Foreman Core and Smart Proxy changes are required in order to support all o
 
 Foreman Proxy must be enhanced with new PXE variant "Pxegrub2" to allow deploying configuration files in "grub2/" folder. In addition to that, Pxegrub (version 1) must deploy two configuration files instead of one now to support both BIOS and UEFI naming conventions (grub/menu.lst vs grub/efidefault and grub/menu.lst.01aabbccddeeff vs grub/01-AA-BB-CC-DD-EE-FF). Also, Pxegrub variant will use new base directory "grub/" instead of "boot/grub/" for consistency with "grub2" and "pxelinux.cfg/".
 
+### [Foreman proxy #15864](http://projects.theforeman.org/issues/15864) - Pxelinux kind as an alias for Syslinux
+
+We are removing template variant attribute from OS in Foreman Core and template kind will define what to pass to Proxy. Since Syslinux variant is implemented as PXELinux kind and PXELinux = SYSLinux (it's the same just different name), I will submit a patch to accept both.
+
 ### [Foreman core #12634](http://projects.theforeman.org/issues/12634) - New HW Model flags pxe_template and loader
 
-Hardware model will be enhanced with two new flags: PXE template specifies PXE template kind and variant pair to use. Until today, this was hardcoded to PXELinux or PXEGrub by selected operating system. Optionally, template variant flag from OS could be simply dropped because PXE template implies variant to use and there are no variants which share the same configuration syntax (this is an open item).
+Foreman will support both BIOS and UEFI systems and it is required to associate extra information for each indidivual host (or hostgroup) in order to provide TFTP "filename" option correctly. It can be set per instance via new Host/Hostgroup string flag (free-form dropdown field) called "PXE Loader" (`pxe_loader` model attribute) with possible values:
 
-Orchestration TFTP code must be modified to use multiple "KIND LOADER default local boot" and "KIND LOADER global default" templates. Local and global boot templates must be added for Grub2 new kind. Naming convention will be:
+* "PXELinux BIOS" => pxelinux.0 (default value)
+* "PXELinux UEFI" => pxelinux.efi
+* "Grub UEFI 64bit" => grub/bootx64.efi
+* "Grub UEFI 32bit" => grub/bootia32.efi
+* "Grub SecureBoot" => grub/shim.efi
+* "Grub2 UEFI 64bit" => grub2/bootx64.efi
+* "Grub2 UEFI 32bit" => grub2/bootia32.efi
+* "Grub2 SecureBoot" => grub2/shim.efi
+* "None" => Skip TFTP orchestration (useful for example with iPXE provisioning with libvirt)
 
-* PXELinux BIOS default local boot
-* PXELinux UEFI default local boot
-* PXEGrub BIOS default local boot
-* PXEGrub UEFI default local boot
-* etc. (the same for global default templates)
+Model validation does not allow arbitrary strings for the field.
 
-But only kind/variant is not enough, users need to select BIOS or UEFI booting method. This is where Loader flag comes in - selection of three constants: BIOS, UEFI and SecureBoot UEFI. The first two are obvious causing selection of the correct DHCP filename when deploying TFTP configuration, the third one select "shim.efi" chain loading capability for secure booting.
+OS template_kind flag will be refactored to a list of possible compatible kinds and TFTP orchestration will always render all compatible kinds which were associated with the OS (or throw an error if there is no template associated for the selected PXE loader type).
 
-Hardware model fact importing will be enhanced - it will be possible to import the loader flag from an extra custom fact (defined via global settings).
+Orchestration TFTP code must be modified to use multiple "KIND default local boot" and "KIND global default" templates. Local and global boot templates must be added for Grub2 new kind. Since the proxy has been already modified to deploy both UEFI and BIOS templates, the template is always sent once (and rendered twice for PXEGrub).
+
+Template variant will be completely removed from the codebase because PXE template implies variant to use and there are no variants which share the same configuration syntax.
+
+New templates will be created as part of the PR (and submitted into [community-templates repo](https://github.com/theforeman/community-templates/pull/291) as well)
+
+* PXEGrub2 default local boot
+* PXEGrub global default
+* PXEGrub2 global default
+* Kickstart default PXEGrub
+* Kickstart default PXEGrub2
+* pxegrub_discovery
+* pxegrub2_discovery
 
 ### [Foreman installer #14920](http://projects.theforeman.org/issues/14920) - Change dhcpd.conf to support UEFI loaders
 
@@ -132,8 +152,7 @@ Discovery can detect current OS loader via a [custom fact](https://github.com/jc
 # Unresolved questions
 [unresolved]: #unresolved-questions
 
-* Shall we drop OS variant in favor of pxe template kind?
-* Is global setting for missing values of pxe_template/loader useful?
+* None.
 
 # References
 [references]: #references
