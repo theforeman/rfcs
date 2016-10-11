@@ -18,6 +18,8 @@ Katello was originally a stand alone Rails application that attempted to integra
 
 The design is being broken out into mini-RFCs due to the breadth of each one and this is being used as a tracker to link to them since there is the small efforts and designs along with the broader goal. This section should be updated with links to the individual mini-RFCs as they are opened.
 
+ * (Merge Katello documentation to Foreman documentation)[https://github.com/theforeman/rfcs/blob/master/text/0016-katello-as-a-plugin/0017-merge-katello-docs.md]
+
 # Drawbacks
 [drawbacks]: #drawbacks
 
