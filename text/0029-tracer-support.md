@@ -1,7 +1,7 @@
 - Feature Name: Tracer Support
 - Start Date: 24/10/16
-- RFC PR:
-- Issue: 
+- RFC PR: [#29](https://github.com/theforeman/rfcs/pull/29)
+- Issue: [#17230](http://projects.theforeman.org/issues/17230)
 
 # Summary
 [summary]: #summary
